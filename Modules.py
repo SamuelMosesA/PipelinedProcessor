@@ -5,17 +5,19 @@ from Cache import ICache, DCache
 class InstructionFetch:
     def __init__(self):
         self.pc = 0
+        self.pc_available = True
 
     def output(self):
-        cache_out = ICache.read(int_to_bin(self.pc))
-        if not cache_out["status"]:
+        if not self.pc_available:
             return {"npc": 0, "inst": 0, "status": False}
         else:
-            ICache.close_read()
-            return {"npc": self.pc + 2, "inst": cache_out["data"], "status": True}
+            cache_out = ICache.read(int_to_bin(self.pc))
+            self.pc_available = False
+            return {"npc": self.pc + 2, "inst": cache_out, "status": True}
 
     def input(self, new_pc):
         self.pc = new_pc
+        self.pc_available = True
 
 
 class DecodeRegFetch:
@@ -28,7 +30,8 @@ class DecodeRegFetch:
         a_ind = int(instr[8:12], 2)
         b_ind = int(instr[12:16], 2)
 
-        immval = bin_to_signed(instr[8:16], 8)
+        #todo: change it for jmp and bneq instr
+        immval = bin_to_signed(instr[8:16] + '0', 9)
 
         op_type = ""
         if opcode <= 7:
@@ -51,10 +54,24 @@ class DecodeRegFetch:
         else:
             b = bin_to_signed(instr[12:16], 4)
 
-        read_validity = (not self.register_file[a_ind]["busy"]) or (not self.register_file[b_ind]["busy"])
+        read_validity = True
+        a_valid = True
+        b_valid = True
 
-        return {"type": op_type, "opcode": opcode, "dest_ind": dest_ind, "a": a, "b": b, "status": read_validity,
-                "imm": immval}
+        if self.register_file[a_ind]["busy"]:
+            read_validity = False
+            a_valid = False
+            a = a_ind
+
+        if self.register_file[b_ind]["busy"]:
+            read_validity = False
+            b_valid = False
+            b = b_ind
+
+        return {"type": op_type, "opcode": opcode, "dest_ind": dest_ind,
+                "a": a, "a_valid": a_valid, "b": b, "b_valid": b_valid,
+                "imm": immval,
+                "status": read_validity}
 
     def input(self, reg_ind: int, data: int):
         self.register_file[reg_ind]["data"] = data
@@ -62,5 +79,10 @@ class DecodeRegFetch:
 
 
 class MemAccess:
+    def __init__(self):
+        self.i = 0
+
+
+class ExecuteAddrCalc:
     def __init__(self):
         self.i = 0

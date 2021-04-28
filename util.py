@@ -13,3 +13,4 @@ def bin_to_signed(binstr, len):
         return - int(tempstr, 2) - 1
     else:
         return int(binstr, 2)
+
