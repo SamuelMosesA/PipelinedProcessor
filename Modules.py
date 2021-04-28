@@ -30,9 +30,6 @@ class DecodeRegFetch:
         a_ind = int(instr[8:12], 2)
         b_ind = int(instr[12:16], 2)
 
-        #todo: change it for jmp and bneq instr
-        immval = bin_to_signed(instr[8:16] + '0', 9)
-
         op_type = ""
         if opcode <= 7:
             op_type = "arith_or_logic"
@@ -53,6 +50,13 @@ class DecodeRegFetch:
             b = self.register_file[b_ind]["data"]
         else:
             b = bin_to_signed(instr[12:16], 4)
+
+        if op_type in ["load", "store"]:
+            immval = bin_to_signed(instr[12:16], 4)
+        if opcode == 11:
+            immval = bin_to_signed(instr[8:16] + '0', 9)
+        if opcode == 10:
+            immval = bin_to_signed(instr[4:12] + '0', 9)
 
         read_validity = True
         a_valid = True
@@ -88,39 +92,40 @@ class ExecuteAddrCalc:
         self.i = 0
 
     def execute(self, afterDecode):
-        if afterDecode["opcode"]==0:
-            result = afterDecode["a"]+afterDecode["b"]
+        if afterDecode["opcode"] == 0:
+            result = afterDecode["a"] + afterDecode["b"]
             address = 0
             optype = "add"
-        elif afterDecode["opcode"]==1:
-            result = afterDecode["a"]-afterDecode["b"]
+        elif afterDecode["opcode"] == 1:
+            result = afterDecode["a"] - afterDecode["b"]
             address = 0
             optype = "subtract"
-        elif afterDecode["opcode"]==2:
-            result = afterDecode["a"]*afterDecode["b"]
+        elif afterDecode["opcode"] == 2:
+            result = afterDecode["a"] * afterDecode["b"]
             address = 0
             optype = "multiply"
-        elif afterDecode["opcode"]==3:
+        elif afterDecode["opcode"] == 3:
             result = afterDecode["a"] + 1
             address = 0
             optype = "add"
-        elif afterDecode["opcode"]==4:
+        elif afterDecode["opcode"] == 4:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==5:
+        elif afterDecode["opcode"] == 5:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==6:
+        elif afterDecode["opcode"] == 6:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==7:
+        elif afterDecode["opcode"] == 7:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==8:
+        elif afterDecode["opcode"] == 8:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==9:
+        elif afterDecode["opcode"] == 9:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==10:
+        elif afterDecode["opcode"] == 10:
             result = afterDecode["new_pc"] + afterDecode["imm"]
-        elif afterDecode["opcode"]==11:
-            if afterDecode["a"]==0:
+        elif afterDecode["opcode"] == 11:
+            if afterDecode["a"] == 0:
                 result = afterDecode["new_pc"] + afterDecode["imm"]
         else:
-            result=0
-        return {"optype": afterDecode["opcode"], "result": result, "address": '00', "dest_reg": 1, "jump": False, "new_pc": 2}
+            result = 0
+        return {"optype": afterDecode["opcode"], "result": result, "address": '00', "dest_reg": 1, "jump": False,
+                "new_pc": 2}
