@@ -86,3 +86,41 @@ class MemAccess:
 class ExecuteAddrCalc:
     def __init__(self):
         self.i = 0
+
+    def execute(self, afterDecode):
+        if afterDecode["opcode"]==0:
+            result = afterDecode["a"]+afterDecode["b"]
+            address = 0
+            optype = "add"
+        elif afterDecode["opcode"]==1:
+            result = afterDecode["a"]-afterDecode["b"]
+            address = 0
+            optype = "subtract"
+        elif afterDecode["opcode"]==2:
+            result = afterDecode["a"]*afterDecode["b"]
+            address = 0
+            optype = "multiply"
+        elif afterDecode["opcode"]==3:
+            result = afterDecode["a"] + 1
+            address = 0
+            optype = "add"
+        elif afterDecode["opcode"]==4:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==5:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==6:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==7:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==8:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==9:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==10:
+            result = afterDecode["new_pc"] + afterDecode["imm"]
+        elif afterDecode["opcode"]==11:
+            if afterDecode["a"]==0:
+                result = afterDecode["new_pc"] + afterDecode["imm"]
+        else:
+            result=0
+        return {"optype": afterDecode["opcode"], "result": result, "address": '00', "dest_reg": 1, "jump": False, "new_pc": 2}
