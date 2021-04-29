@@ -1,3 +1,8 @@
+
+#     A Samuel Moses cs19b003
+#     K R Hariharan cs19b079
+#     Shree Vishnu cs19b045
+
 from util import int_to_bin, bin_to_signed
 from Cache import ICache, DCache  # Cache Memory
 
