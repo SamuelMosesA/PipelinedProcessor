@@ -29,7 +29,7 @@ class Cache:
     def DcacheOut(self):
         with open("DCacheOut.txt", 'w') as outfile:
             for block in self.cache:
-                out = [hex(item)[2:].zfill(2) for item in block]
+                out = [hex(item)[2:].zfill(2)+"\n" for item in block]
                 outfile.writelines(out)
 
 

@@ -55,35 +55,46 @@ class Manage:
             if opcode > 11:  # program halt initiated
                 self.stall = 3
                 return None
-            elif opcode == 10:  # get respective imm operands for control instr
+            elif opcode == 10: # get respective imm operands for control instr
                 immval = bin_to_signed(FetchBuffer["inst"][4:12] + '0', 9)
             elif opcode == 11:
                 a_ind = int(FetchBuffer["inst"][4:8], 2)
                 immval = bin_to_signed(FetchBuffer["inst"][8:16] + '0', 9)
             else:
-                dest_ind = int(FetchBuffer["inst"][4:8], 2)  #
+                dest_ind = int(FetchBuffer["inst"][4:8], 2)
                 if opcode == 3:
                     a_ind = int(FetchBuffer["inst"][4:8], 2)
                 elif opcode == 6:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
+                elif opcode <= 7:
+                    a_ind = int(FetchBuffer["inst"][8:12], 2)
+                    b_ind = int(FetchBuffer["inst"][12:16], 2)
                 elif opcode <= 9:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
                     b = bin_to_signed(FetchBuffer["inst"][12:16], 4)
 
             # checking for data hazards - if present, ID buffer cleared and stall initiated/retained
             if a_ind is not None:
-                # if there is an inst which has to write to this register before reading it
                 if self.register_file[a_ind]["busy"] > 0:
-                    # set it as RAW hazard stall
-                    self.stall = 2
-                    return None
+                    if self.ExecBuffer is not None and self.ExecBuffer["dest_ind"]==a_ind and self.ExecBuffer["opcode"] <= 7:
+                        a = self.ExecBuffer["result"]
+                    elif self.MemBuffer is not None and self.MemBuffer["dest_ind"]==a_ind and self.MemBuffer["opcode"] <= 8:
+                        a = self.MemBuffer["result"]
+                    else:
+                        self.stall = 2
+                        return None
                 else:
                     a = self.register_file[a_ind]["data"]
 
             if b_ind is not None:
                 if self.register_file[b_ind]["busy"] > 0:
-                    self.stall = 2
-                    return None
+                    if self.ExecBuffer is not None and self.ExecBuffer["dest_ind"]==b_ind and self.ExecBuffer["opcode"] <= 7:
+                        b = self.ExecBuffer["result"]
+                    elif self.MemBuffer is not None and self.MemBuffer["dest_ind"]==b_ind and self.MemBuffer["opcode"]<= 8:
+                        b = self.MemBuffer["result"]
+                    else:
+                        self.stall = 2
+                        return None
                 else:
                     b = self.register_file[b_ind]["data"]
 
@@ -96,7 +107,7 @@ class Manage:
                 self.stall = 0
 
             # destination register's "busyness" updated
-            if dest_ind is not None:
+            if dest_ind is not None and opcode != 9:
                 self.register_file[dest_ind]["busy"] += 1
 
             self.register_file[0]["data"] = 0
@@ -163,7 +174,7 @@ class Manage:
                 result = DCache.read(ExecBuffer["result"])  # Reading from result address
             elif ExecBuffer["opcode"] == 9:
                 DCache.write(ExecBuffer["result"], self.register_file[ExecBuffer["dest_ind"]]["data"])
-                return None  # nothing to write back
+                return None # nothing to write back
             # Writing to result address from dest_ind
 
             return {"opcode": ExecBuffer["opcode"], "dest_ind": ExecBuffer["dest_ind"],
@@ -174,7 +185,7 @@ class Manage:
             if self.FetchBuffer is None and self.DecodeBuffer is None and self.stall == 3:
                 return -1  # -1 returned if halt instruction is "completed"
             else:
-                return 0  # step skipped in case of hazard
+                return 0  # # step skipped in case of hazard
         else:
             if MemBuffer["opcode"] <= 8:  # writing to destination register
                 self.register_file[MemBuffer["dest_ind"]]["data"] = MemBuffer["result"]
