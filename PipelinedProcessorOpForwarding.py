@@ -218,16 +218,18 @@ if __name__ == "__main__":
             RAW_stalls += 1
 
     with open("Output.txt", 'w') as outfile:
-        outfile.write(f"Total number of instructions executed:{sum(optype_counter)}\n")
+        format_string = "{0:<37}:{1}\n"
+        outfile.write(format_string.format("Total number of instructions executed", sum(optype_counter)))
         outfile.write("Number of instructions in each class\n")
-        outfile.write(f"Arithmetic instructions \t:{optype_counter[0]}\n")
-        outfile.write(f"Logical instructions \t:{optype_counter[1]}\n")
-        outfile.write(f"Data instructions \t:{optype_counter[2]}\n")
-        outfile.write(f"Control instructions \t:{optype_counter[3]}\n")
-        outfile.write(f"Halt instructions \t:{optype_counter[4]}\n")
-        outfile.write("Cycles per instruction \t:{0:4f}\n".format(clocks / sum(optype_counter)))
-        outfile.write(f"Total number of stalls \t:{RAW_stalls + control_stalls}\n")
-        outfile.write(f"Data stalls (RAW) \t:{RAW_stalls}\n")
-        outfile.write(f"Control stalls \t:{control_stalls}")
+        outfile.write(format_string.format("Arithmetic instructions", optype_counter[0]))
+        outfile.write(format_string.format("Logical instructions", optype_counter[1]))
+        outfile.write(format_string.format("Data instructions", optype_counter[2]))
+        outfile.write(format_string.format("Control instructions", optype_counter[3]))
+        outfile.write(format_string.format("Halt instructions", optype_counter[4]))
+        outfile.write("{0:<37}:{1:4f}\n".format("Cycles per instruction", clocks / sum(optype_counter)))
+        outfile.write(format_string.format("Total number of stalls", RAW_stalls + control_stalls))
+        outfile.write(format_string.format("Data stalls (RAW)", RAW_stalls))
+        outfile.write(format_string.format("Control stalls", control_stalls))
+
 
     DCache.DcacheOut()
