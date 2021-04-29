@@ -26,6 +26,12 @@ class Cache:
         block_offset = int(address[-2:], 2)
         self.cache[block_index][block_offset] = data
 
+    def DcacheOut(self):
+        with open("DCacheOut.txt", 'w') as outfile:
+            for block in self.cache:
+                out = [hex(item)[2:].zfill(2) for item in block]
+                outfile.writelines(out)
+
 
 DCache = Cache("DCache.txt", False)
 ICache = Cache("ICache.txt", True)
