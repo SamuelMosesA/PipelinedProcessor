@@ -2,21 +2,21 @@
 
 ## Todo
 
--[ ] Change Cache address input as int
+-[x] Change Cache address input as int
 -[ ] Complete Memory stage
 -[ ] Correct syntax errors
--[ ] Add logic for correct RAW removal
--[ ] Add logic for registers to init data from file
--[ ] Add counters for type of instruction
+-[x] Add logic for correct RAW removal
+-[ ] Add logic for registers to init data from file - Note by KR: Don't understand. Is this ur part?
+-[ ] Add counters for type of instruction - Note by KR: Will do. 10 mins ig
     - Arith
     - Logic
     - Data
     - Control
     - Halt
--[ ] Stall and cycle counters for
+-[x] Stall and cycle counters for
     - RAW stalls
     - Branch stalls
     - Total cycles
--[ ] Change load to go to WB stage
--[ ] Correct the immval for load, store and jump
--[ ] Add operand forwarding
+-[x] Change load to go to WB stage
+-[x] Correct the immval for load, store and jump - Note by KR: check once
+-[ ] Add operand forwarding - Note by KR: 20 min job. Ik logic; let's do after syntax check
