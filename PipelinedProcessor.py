@@ -4,7 +4,10 @@ from Cache import ICache, DCache  # Cache Memory
 
 class Manage:
     def __init__(self, filename):
-        self.register_file = [{"data": 0, "busy": 0}] * 16  # Registers
+        self.register_file = []  # Registers
+        with open(filename, 'r') as rfFile:
+            for i in range(16):
+                self.register_file.append({"data": int(rfFile.readline(), 16), "busy": 0})
         self.pc = 0  # Program Counter
         self.stall = 0  # Retains stall value - 1 for control hazard, 2 for data hazard, 3 for program halt
         self.MemBuffer = None  # buffer after Memory cycle
@@ -18,19 +21,19 @@ class Manage:
         self.ExecBuffer = self.Execution(self.DecodeBuffer)
         self.DecodeBuffer = self.InstructionDecode(self.FetchBuffer)
         self.FetchBuffer = self.InstructionFetch()
-
         if self.ExecBuffer is None:
-            optype = 0  # stall cycle
+            optype = None  # stall cycle
         else:
             optype = self.ExecBuffer["optype"]
-        return {instcount, self.stall, optype}
+        return instcount, self.stall, optype
 
     def InstructionFetch(self):
-        if self.stall in [1,
-                          3]:  # IF buffer cleared and no instruction pulled if there is a control hazard or program halted
+        # IF buffer cleared and no instruction pulled if there is a control hazard or program halted
+        if self.stall in [1, 3]:
             return None
+        # IF buffer retained, without performing new IF, if there is a data hazard holding up ID step
         elif self.stall == 2:
-            return self.FetchBuffer()  # IF buffer retained, without performing new IF, if there is a data hazard holding up ID step
+            return self.FetchBuffer()
         else:
             cache_out = ICache.read(int_to_bin(self.pc))  # reading instruction
             self.pc += 2  # pc update
@@ -64,8 +67,8 @@ class Manage:
                 elif opcode == 6:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
                 elif opcode <= 9:
-                    a = bin_to_signed(FetchBuffer["inst"][8:12], 4)
-                    b_ind = int(FetchBuffer["inst"][12:16], 2)
+                    a_ind = int(FetchBuffer["inst"][8:12], 2)
+                    b = bin_to_signed(FetchBuffer["inst"][12:16], 4)
 
             # checking for data hazards - if present, ID buffer cleared and stall initiated/retained
             if a_ind is not None:
@@ -75,12 +78,12 @@ class Manage:
                 else:
                     a = self.register_file[a_ind]["data"]
 
-            if b is not None:
+            if b_ind is not None:
                 if self.register_file[b_ind]["busy"] > 0:
                     self.stall = 2
                     return None
                 else:
-                    a = self.register_file[b_ind]["data"]
+                    b = self.register_file[b_ind]["data"]
 
             # if instruction is jump/beqz, initiate control hazard
             if opcode >= 10:
@@ -132,13 +135,13 @@ class Manage:
                 optype = 2  # Logical
             elif DecodeBuffer["opcode"] == 10:
                 result = self.pc + DecodeBuffer["immval"]
-                optype = 3  # Jump
+                optype = 4  # Jump
             elif DecodeBuffer["a"] == 0:
                 result = self.pc + DecodeBuffer["immval"]
-                optype = 3  # Jump
+                optype = 4  # Jump
             else:
                 result = self.pc
-                optype = 3  # Jump
+                optype = 4  # Jump
 
             return {"opcode": DecodeBuffer["opcode"], "optype": optype, "dest_ind": DecodeBuffer["dest_ind"],
                     "result": result}
@@ -153,8 +156,9 @@ class Manage:
                 if self.stall == 1:
                     self.stall = 0  # clearing the control hazard
             elif ExecBuffer["opcode"] == 8:
-                result =  # Reading from result address
+                result = DCache.read(ExecBuffer["result"])  # Reading from result address
             elif ExecBuffer["opcode"] == 9:
+                DCache.write(ExecBuffer["result"])
             # Writing to result address from dest_ind
 
             return {"opcode": ExecBuffer["opcode"], "dest_ind": ExecBuffer["dest_ind"],
@@ -169,6 +173,38 @@ class Manage:
         else:
             if MemBuffer["opcode"] <= 8:  # writing to destination register
                 self.register_file[MemBuffer["dest_ind"]]["data"] = MemBuffer["result"]
-                self.register_file[MemBuffer["dest_ind"]][
-                    "busy"] -= 1  # decrementing "busyness" of register to clear up data hazards
+                # decrementing "busyness" of register to clear up data hazards
+                self.register_file[MemBuffer["dest_ind"]]["busy"] -= 1
             return 1  # 1 instruction completed this cycle
+
+
+if __name__ == "__main__":
+    clocks = 0
+    optype_counter = [0, 0, 0, 0, 0]
+    RAW_stalls = 0
+    control_stall = 0
+    processor = Manage("RF.txt")
+    while True:
+        instcount, stall, optype = processor.clock()
+        clocks += 1
+        if instcount == -1:
+            optype_counter[4] += 1
+            break
+        if optype is not None:
+            optype_counter[optype - 1] += 1
+        if stall == 1:
+            control_stall += 1
+        if stall == 2:
+            RAW_stalls += 1
+
+    with open("Output.txt", 'w') as outfile:
+        outfile.write(f"Total number of instructions executed:{sum(optype_counter)}\n")
+        outfile.write("Number of instructions in each class\n")
+        outfile.write(f"Arithmetic instructions \t:{optype_counter[0]}\n")
+        outfile.write(f"Logical instructions \t:{optype_counter[1]}\n")
+        outfile.write(f"Data instructions \t:{optype_counter[2]}\n")
+        outfile.write(f"Control instructions \t:{optype_counter[3]}\n")
+        outfile.write(f"Halt instructions \t:{optype_counter[4]}\n")
+        outfile.write("Cycles per instruction \t:{0:4f}\n".format(clocks / sum(optype_counter)))
+        outfile.write(f"Data stalls (RAW) \t:{RAW_stalls}\n")
+        outfile.write(f"Control stalls \t:{control_stall}")
