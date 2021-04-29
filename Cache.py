@@ -10,16 +10,18 @@ class Cache:
                 four_bytes = [int(file.readline(), 16) for i in range(4)]
                 self.cache.append(four_bytes)
 
-    def read(self, address: str) -> str:
+    def read(self, address: int):
+        address = int_to_bin(address)
         block_index = int(address[:-2], 2)
         block_offset = int(address[-2:], 2)
         cache_block = self.cache[block_index]
         if not self.icache:
-            return int_to_bin(cache_block[block_offset])
+            return cache_block[block_offset]
         else:
             return int_to_bin(cache_block[block_offset]) + int_to_bin(cache_block[block_offset + 1])
 
-    def write(self, address: str, data: int):
+    def write(self, address: int, data: int):
+        address = int_to_bin(address)
         block_index = int(address[:-2], 2)
         block_offset = int(address[-2:], 2)
         self.cache[block_index][block_offset] = data
