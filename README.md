@@ -7,7 +7,7 @@
 -[ ] Correct syntax errors
 -[x] Add logic for correct RAW removal
 -[ ] Add logic for registers to init data from file - Note by KR: Don't understand. Is this ur part?
--[ ] Add counters for type of instruction - Note by KR: Will do. 10 mins ig
+-[X] Add counters for type of instruction
     - Arith
     - Logic
     - Data
