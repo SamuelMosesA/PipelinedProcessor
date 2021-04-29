@@ -63,9 +63,12 @@ class Manage:
                     a_ind = int(FetchBuffer["inst"][4:8], 2)
                 elif opcode == 6:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
-                elif opcode <= 9:
-                    a = bin_to_signed(FetchBuffer["inst"][8:12], 4)
+                elif opcode <= 7:
+                    a_ind = int(FetchBuffer["inst"][8:12], 2)
                     b_ind = int(FetchBuffer["inst"][12:16], 2)
+                elif opcode <= 9:
+                    a_ind = int(FetchBuffer["inst"][8:12], 2)
+                    b = bin_to_signed(FetchBuffer["inst"][12:16], 4)
 
             # checking for data hazards - if present, ID buffer cleared and stall initiated/retained
             if a_ind is not None:
@@ -75,12 +78,12 @@ class Manage:
                 else:
                     a = self.register_file[a_ind]["data"]
 
-            if b is not None:
+            if b_ind is not None:
                 if self.register_file[b_ind]["busy"] > 0:
                     self.stall = 2
                     return None
                 else:
-                    a = self.register_file[b_ind]["data"]
+                    b = self.register_file[b_ind]["data"]
 
             # if instruction is jump/beqz, initiate control hazard
             if opcode >= 10:
