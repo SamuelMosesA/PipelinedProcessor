@@ -18,7 +18,12 @@ class Manage:
         self.ExecBuffer = self.Execution(self.DecodeBuffer)
         self.DecodeBuffer = self.InstructionDecode(self.FetchBuffer)
         self.FetchBuffer = self.InstructionFetch()
-        return {instcount, self.stall}
+        
+        if self.ExecBuffer==None:
+    		optype=0 # stall cycle
+    	else
+    		optype=self.ExecBuffer["optype"]
+    	return {instcount, self.stall, optype}
 
     def InstructionFetch(self):
         if self.stall in [1,
