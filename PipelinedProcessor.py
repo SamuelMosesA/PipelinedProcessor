@@ -97,32 +97,46 @@ class Manage:
             return None
         else:
             # performing ALU operation
-            result = None
-            if DecodeBuffer["opcode"] in [0, 8, 9]:
-                result = DecodeBuffer["a"] + DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 1:
-                result = DecodeBuffer["a"] - DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 2:
-                result = DecodeBuffer["a"] * DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 3:
-                result = DecodeBuffer["a"] + 1
-            elif DecodeBuffer["opcode"] == 4:
-                result = DecodeBuffer["a"] & DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 5:
-                result = DecodeBuffer["a"] | DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 6:
-                result = ~DecodeBuffer["a"]
-            elif DecodeBuffer["opcode"] == 7:
-                result = DecodeBuffer["a"] ^ DecodeBuffer["b"]
-            elif DecodeBuffer["opcode"] == 10:
-                result = self.pc + DecodeBuffer["immval"]
-            elif DecodeBuffer["a"] == 0:
-                result = self.pc + DecodeBuffer["immval"]
-            else:
-                result = self.pc
-
-            return {"opcode": DecodeBuffer["opcode"], "dest_ind": DecodeBuffer["dest_ind"],
-                    "result": result}
+    		result=None
+    		if DecodeBuffer["opcode"] in [0,8,9]:
+            		result = DecodeBuffer["a"]+DecodeBuffer["b"]
+            		if DecodeBuffer["opcode"]==0:
+            			optype = 1 #Arithmetic
+            		else:
+            			optype = 3 #Memory
+            	elif DecodeBuffer["opcode"]==1:
+            		result = DecodeBuffer["a"]-DecodeBuffer["b"]
+            		optype = 1 #Arithmetic
+            	elif DecodeBuffer["opcode"]==2:
+            		result = DecodeBuffer["a"]*DecodeBuffer["b"]
+            		optype = 1 #Arithmetic
+            	elif DecodeBuffer["opcode"]==3:
+            		result = DecodeBuffer["a"]+1
+            		optype = 1 #Arithmetic
+            	elif DecodeBuffer["opcode"]==4:
+            		result = DecodeBuffer["a"]&DecodeBuffer["b"]
+            		optype = 2 #Logical
+            	elif DecodeBuffer["opcode"]==5:
+            		result = DecodeBuffer["a"]|DecodeBuffer["b"]
+            		optype = 2 #Logical
+            	elif DecodeBuffer["opcode"]==6:
+            		result = ~DecodeBuffer["a"]
+            		optype = 2 #Logical
+            	elif DecodeBuffer["opcode"]==7:
+            		result = DecodeBuffer["a"]^DecodeBuffer["b"]
+            		optype = 2 #Logical
+            	elif DecodeBuffer["opcode"]==10:
+            		result = self.pc+DecodeBuffer["immval"]
+            		optype = 3 #Jump
+            	elif DecodeBuffer["a"]==0:
+            		result = self.pc+DecodeBuffer["immval"]
+            		optype = 3 #Jump
+            	else
+            		result = self.pc
+            		optype = 3 #Jump
+            	
+            	return {"opcode": opcode, "optype": optype, "dest_ind": dest_ind,
+                "result": result}
 
     def Memory(self, ExecBuffer):
         if ExecBuffer is None:  # step skipped in case of hazard/halt
