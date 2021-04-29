@@ -66,9 +66,12 @@ class Manage:
                     a_ind = int(FetchBuffer["inst"][4:8], 2)
                 elif opcode == 6:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
+                elif opcode <= 7:
+                    a_ind = int(FetchBuffer["inst"][8:12], 2)
+                    b_ind = int(FetchBuffer["inst"][12:16], 2)
                 elif opcode <= 9:
                     a_ind = int(FetchBuffer["inst"][8:12], 2)
-                    b = bin_to_signed(FetchBuffer["inst"][12:16], 4)
+                    b = bin_to_signed(FetchBuffer["inst"][12:16], 4)  #
 
             # checking for data hazards - if present, ID buffer cleared and stall initiated/retained
             if a_ind is not None:
@@ -96,7 +99,7 @@ class Manage:
                 self.stall = 0
 
             # destination register's "busyness" updated
-            if dest_ind is not None:
+            if dest_ind is not None and opcode != 9:
                 self.register_file[dest_ind]["busy"] += 1
 
             self.register_file[0]["data"] = 0
